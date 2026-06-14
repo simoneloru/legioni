@@ -1,0 +1,28 @@
+{
+  "name": "hexis",
+  "version": "0.1.0",
+  "description": "A portable, maturing team of AI coding agents. My name is Legion, for we are many.",
+  "bin": {
+    "hexis": "./bin/hexis.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "files": [
+    "dist/",
+    "bin/",
+    "defaults/"
+  ],
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "gray-matter": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.4.0"
+  }
+}
