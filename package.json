@@ -1,14 +1,33 @@
 {
-  "name": "hexis",
-  "version": "0.1.0",
+  "name": "legioni",
+  "version": "0.4.4",
   "description": "A portable, maturing team of AI coding agents. My name is Legion, for we are many.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/simoneloru/legioni"
+  },
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "coding-agent",
+    "opencode",
+    "multi-agent",
+    "llm",
+    "cli",
+    "team",
+    "orchestrator",
+    "code-generation",
+    "autonomous"
+  ],
   "bin": {
-    "hexis": "./bin/hexis.js"
+    "legioni": "./bin/legioni.js"
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/cli.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build && npm run typecheck",
+    "test": "vitest run"
   },
   "files": [
     "dist/",
@@ -23,6 +42,7 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "tsx": "^4.0.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^3.0.0"
   }
 }

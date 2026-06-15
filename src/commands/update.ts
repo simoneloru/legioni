@@ -3,7 +3,7 @@ import chalk from 'chalk'
 import { runRecon, WORKSPACE_DIR } from '../core/recon'
 import { loadAllRoles, FileLessonsStore } from '../core/team'
 import { compileAllRoles } from '../core/compile'
-import { writeAgents } from '../adapters/opencode'
+import { writeAgents, upsertProjectInstructions } from '../adapters/opencode'
 
 export function runUpdate(cwd: string): void {
   process.stdout.write(chalk.blue('Refreshing project recon ... '))
@@ -17,6 +17,16 @@ export function runUpdate(cwd: string): void {
   const compiled = compileAllRoles(roles, store)
   writeAgents(compiled)
   console.log(chalk.green('done'))
+
+  const { configPath, added, tracked } = upsertProjectInstructions(cwd)
+  if (added) {
+    console.log(chalk.dim(`  → Added .legioni/project.md to instructions in ${configPath}`))
+    if (tracked) {
+      console.log(chalk.yellow(`  ⚠  opencode.json is git-tracked in this repo — this edit will appear in git status.`))
+    } else {
+      console.log(chalk.dim(`  → opencode.json added to .git/info/exclude`))
+    }
+  }
 
   console.log(chalk.green.bold('Done.'))
 }
