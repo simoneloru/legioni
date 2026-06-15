@@ -3,13 +3,15 @@ import { runInit } from './commands/init'
 import { runInstall } from './commands/install'
 import { runUpdate } from './commands/update'
 import { runPromote } from './commands/promote'
+import { runUpgradeTeam } from './commands/upgrade-team'
+import { runConfigSetModel, runConfigSetProvider, runConfigList } from './commands/config'
 
 const program = new Command()
 
 program
-  .name('hexis')
+  .name('legioni')
   .description('A portable, maturing team of AI coding agents')
-  .version('0.1.0')
+  .version('0.4.2')
 
 program
   .command('init')
@@ -19,7 +21,7 @@ program
 program
   .command('install')
   .description('Compile team (roles + lessons) and write to opencode global agents dir')
-  .action(() => runInstall())
+  .action(() => runInstall(process.cwd()))
 
 program
   .command('update')
@@ -30,5 +32,31 @@ program
   .command('promote')
   .description('Review staged lessons and promote approved ones to the team store')
   .action(async () => runPromote(process.cwd()))
+
+program
+  .command('upgrade-team')
+  .description('Compare defaults with your team store and upgrade changed roles')
+  .action(() => runUpgradeTeam())
+
+const configCmd = program
+  .command('config')
+  .description('Manage legioni configuration')
+
+configCmd
+  .command('set-model')
+  .description('Override the model for a single role')
+  .argument('<role-id>', 'Role ID (e.g. implementer)')
+  .argument('<model-id>', 'Model ID (e.g. openai/gpt-4o)')
+  .action((roleId: string, modelId: string) => runConfigSetModel(roleId, modelId))
+
+configCmd
+  .command('set-provider')
+  .description('Change model provider for all roles (interactive)')
+  .action(() => runConfigSetProvider())
+
+configCmd
+  .command('list')
+  .description('Show current provider and model assignments')
+  .action(() => runConfigList())
 
 program.parse(process.argv)

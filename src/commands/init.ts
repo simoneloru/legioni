@@ -5,28 +5,31 @@ import { loadAllRoles, FileLessonsStore, teamStoreExists } from '../core/team'
 import { compileAllRoles } from '../core/compile'
 import { runRecon, WORKSPACE_DIR } from '../core/recon'
 import { scaffoldDefaultTeam } from '../core/scaffold'
-import { writeAgents, upsertGlobalInstructions } from '../adapters/opencode'
+import { writeAgents, upsertProjectInstructions } from '../adapters/opencode'
+import { selectProviderInteractive } from '../core/providers'
 
-export function runInit(cwd: string): void {
-  // 1. Scaffold ~/.hexis/ from defaults if this is the first run
+export async function runInit(cwd: string): Promise<void> {
+  // 1. Scaffold ~/.legioni/ from defaults if this is the first run
   if (!teamStoreExists()) {
-    process.stdout.write(chalk.blue('Scaffolding default team at ~/.hexis/ ... '))
-    scaffoldDefaultTeam()
+    const provider = await selectProviderInteractive()
+    process.stdout.write(chalk.blue('Scaffolding default team at ~/.legioni/ ... '))
+    scaffoldDefaultTeam(provider.id)
     console.log(chalk.green('done'))
+    console.log(chalk.dim(`  → Provider: ${provider.name} (${provider.id})`))
   } else {
-    console.log(chalk.dim('Team store exists at ~/.hexis/'))
+    console.log(chalk.dim('Team store exists at ~/.legioni/'))
   }
 
-  // 2. Recon — study the project, write .hexis/project.md
+  // 2. Recon — study the project, write .legioni/project.md
   process.stdout.write(chalk.blue('Running project recon ... '))
   runRecon(cwd)
   console.log(chalk.green('done'))
   console.log(chalk.dim(`  → ${path.join(cwd, WORKSPACE_DIR, 'project.md')}`))
 
-  // 3. Exclude .hexis/ from git so `git status` stays clean
-  const excluded = addGitExclude(cwd)
+  // 3. Exclude .legioni/ from git so `git status` stays clean
+  const excluded = addWorkspaceGitExclude(cwd)
   if (excluded) {
-    console.log(chalk.dim('  → .hexis/ added to .git/info/exclude'))
+    console.log(chalk.dim('  → .legioni/ added to .git/info/exclude'))
   }
 
   // 4. Compile roles (playbook + lessons) and write to opencode global agents dir
@@ -38,26 +41,28 @@ export function runInit(cwd: string): void {
   console.log(chalk.green('done'))
   written.forEach(p => console.log(chalk.dim(`  → ${p}`)))
 
-  // 5. Add .hexis/project.md to global opencode.json instructions (relative path)
-  const { path: configPath, added } = upsertGlobalInstructions()
+  // 5. Add .legioni/project.md to project-scoped opencode.json
+  const { configPath, added, tracked } = upsertProjectInstructions(cwd)
   if (added) {
-    console.log(chalk.dim(`  → Added .hexis/project.md to instructions in ${configPath}`))
+    console.log(chalk.dim(`  → Added .legioni/project.md to instructions in ${configPath}`))
+    if (tracked) {
+      console.log(chalk.yellow(`  ⚠  opencode.json is git-tracked in this repo — this edit will`))
+      console.log(chalk.yellow(`     appear in git status. Stash or revert it when done.`))
+    } else {
+      console.log(chalk.dim(`  → opencode.json added to .git/info/exclude`))
+    }
   } else {
-    console.log(chalk.dim(`  → .hexis/project.md already in instructions (${configPath})`))
+    console.log(chalk.dim(`  → .legioni/project.md already in ${configPath}`))
   }
 
   console.log()
-  console.log(chalk.green.bold('hexis init complete.'))
-  console.log()
-  console.log(chalk.yellow('⚠  Path resolution note:'))
-  console.log(chalk.yellow('   opencode\'s handling of relative paths in global instructions is'))
-  console.log(chalk.yellow('   not formally documented. On first use, verify the project profile'))
-  console.log(chalk.yellow('   loaded by running /rules inside opencode and checking for'))
-  console.log(chalk.yellow('   .hexis/project.md content. If missing, file an issue — we\'ll add'))
-  console.log(chalk.yellow('   a --fallback flag that writes .opencode/opencode.json instead.'))
+  console.log(chalk.green.bold('legioni init complete.'))
+  console.log(chalk.dim('Run `legioni config list` to see your current model setup.'))
+  console.log(chalk.dim('Run `legioni config set-provider` to change provider,'))
+  console.log(chalk.dim('or `legioni config set-model <role> <model-id>` for per-role overrides.'))
 }
 
-function addGitExclude(cwd: string): boolean {
+function addWorkspaceGitExclude(cwd: string): boolean {
   const gitDir = path.join(cwd, '.git')
   if (!fs.existsSync(gitDir)) return false
 
@@ -65,13 +70,13 @@ function addGitExclude(cwd: string): boolean {
   fs.mkdirSync(path.dirname(excludeFile), { recursive: true })
 
   const existing = fs.existsSync(excludeFile) ? fs.readFileSync(excludeFile, 'utf-8') : ''
-  const entry = '.hexis/'
+  const entry = '.legioni/'
 
-  if (existing.split('\n').some(line => line.trim() === entry || line.trim() === '.hexis')) {
+  if (existing.split('\n').some(line => line.trim() === entry || line.trim() === '.legioni')) {
     return false
   }
 
   const separator = existing.length > 0 && !existing.endsWith('\n') ? '\n' : ''
-  fs.appendFileSync(excludeFile, `${separator}# hexis workspace (per-project, ephemeral)\n${entry}\n`)
+  fs.appendFileSync(excludeFile, `${separator}# legioni workspace (per-project, ephemeral)\n${entry}\n`)
   return true
 }

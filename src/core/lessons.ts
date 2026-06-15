@@ -36,9 +36,10 @@ export function readStagedLessons(cwd: string): StagedLesson[] {
 }
 
 export async function promoteInteractive(cwd: string): Promise<void> {
+  const wsDir = path.join(cwd, WORKSPACE_DIR)
   const staged = readStagedLessons(cwd)
   if (staged.length === 0) {
-    console.log('No staged lessons found in .hexis/lessons.staging.*.md')
+    console.log('No staged lessons found in .legioni/lessons.staging.*.md')
     return
   }
 
@@ -48,6 +49,8 @@ export async function promoteInteractive(cwd: string): Promise<void> {
 
   let promoted = 0
   let skipped = 0
+  // Track reviewed slugs per staging file (y or n — both are decided)
+  const reviewed = new Map<string, Set<string>>()
 
   for (const lesson of staged) {
     console.log(`\n${'─'.repeat(60)}`)
@@ -58,20 +61,46 @@ export async function promoteInteractive(cwd: string): Promise<void> {
 
     const answer = (await ask('Promote? [y/n/q] ')).trim().toLowerCase()
     if (answer === 'q') break
-    if (answer !== 'y') {
-      skipped++
-      continue
-    }
 
-    writeLessonToStore(lesson)
-    promoted++
-    console.log(`  → Promoted to ~/.hexis/lessons/${lesson.role}/${lesson.slug}.md`)
+    const filePath = path.join(wsDir, `lessons.staging.${lesson.role}.md`)
+    if (!reviewed.has(filePath)) reviewed.set(filePath, new Set())
+    reviewed.get(filePath)!.add(lesson.slug)
+
+    if (answer === 'y') {
+      writeLessonToStore(lesson)
+      promoted++
+      console.log(`  → Promoted to ~/.legioni/lessons/${lesson.role}/${lesson.slug}.md`)
+    } else {
+      skipped++
+    }
   }
 
   rl.close()
+
+  // Remove decided candidates (y or n) from their staging files.
+  // Candidates not yet reached (after q) are left intact.
+  for (const [filePath, decidedSlugs] of reviewed) {
+    removeSlugsFromStagingFile(filePath, decidedSlugs)
+  }
+
   console.log(`\nDone. ${promoted} promoted, ${skipped} skipped.`)
   if (promoted > 0) {
-    console.log('Run `hexis install` to recompile the team with the new lessons.')
+    console.log('Run `legioni install` to recompile the team with the new lessons.')
+  }
+}
+
+function removeSlugsFromStagingFile(filePath: string, slugsToRemove: Set<string>): void {
+  if (!fs.existsSync(filePath)) return
+  const content = fs.readFileSync(filePath, 'utf-8').trim()
+  const blocks = content.split(/\n(?=## )/).filter(b => b.trim())
+  const remaining = blocks.filter(block => {
+    const match = block.match(/^## (.+)\n/)
+    return !match || !slugsToRemove.has(match[1].trim())
+  })
+  if (remaining.length === 0) {
+    fs.unlinkSync(filePath)
+  } else {
+    fs.writeFileSync(filePath, remaining.join('\n') + '\n', 'utf-8')
   }
 }
 

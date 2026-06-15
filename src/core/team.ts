@@ -3,7 +3,8 @@ import path from 'path'
 import matter from 'gray-matter'
 import { Role, RoleFrontmatter, Lesson, LessonsStore } from '../types'
 
-export const TEAM_STORE_DIR = path.join(process.env.HOME ?? '/tmp', '.hexis')
+export const HOME_DIR = process.env.HOME ?? process.env.USERPROFILE ?? '/tmp'
+export const TEAM_STORE_DIR = path.join(HOME_DIR, '.legioni')
 
 export function teamStoreExists(): boolean {
   return fs.existsSync(path.join(TEAM_STORE_DIR, 'roles'))
