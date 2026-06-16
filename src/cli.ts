@@ -11,7 +11,7 @@ const program = new Command()
 program
   .name('legioni')
   .description('A portable, maturing team of AI coding agents')
-  .version('0.4.4')
+  .version('0.4.5')
 
 program
   .command('init')
