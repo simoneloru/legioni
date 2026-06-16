@@ -1,6 +1,7 @@
+/// <reference types="node" />
 import fs from 'fs'
 import path from 'path'
-import { execSync } from 'child_process'
+import { execFileSync } from 'child_process'
 import { CompiledRole } from '../types'
 
 import { HOME_DIR } from '../core/team'
@@ -67,7 +68,7 @@ export function upsertProjectInstructions(cwd: string): {
 
 function isGitTracked(cwd: string, file: string): boolean {
   try {
-    execSync(`git ls-files --error-unmatch ${file}`, { cwd, stdio: 'ignore' })
+    execFileSync('git', ['ls-files', '--error-unmatch', file], { cwd, stdio: 'ignore' })
     return true
   } catch {
     return false
