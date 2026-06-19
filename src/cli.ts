@@ -11,7 +11,8 @@ const program = new Command()
 program
   .name('legioni')
   .description('A portable, maturing team of AI coding agents')
-  .version('0.5.0')
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  .version(require('../package.json').version)
 
 program
   .command('init')
