@@ -139,26 +139,38 @@ function getTopLevelStructure(cwd: string): string {
     .filter(e => !e.startsWith('.') && !IGNORED.has(e))
     .sort()
     .map(e => {
-      const isDir = fs.statSync(path.join(cwd, e)).isDirectory()
-      return isDir ? `${e}/` : e
+      try {
+        const isDir = fs.statSync(path.join(cwd, e)).isDirectory()
+        return isDir ? `${e}/` : e
+      } catch {
+        return e
+      }
     })
 
   let result = entries.join('\n')
 
   for (const candidate of ['src', 'lib', 'app', 'pkg', 'packages']) {
     const dir = path.join(cwd, candidate)
-    if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
-      const sub = fs
-        .readdirSync(dir)
-        .filter(e => !e.startsWith('.') && !IGNORED.has(e))
-        .sort()
-        .slice(0, 20)
-        .map(e => {
-          const isDir = fs.statSync(path.join(dir, e)).isDirectory()
-          return `  ${e}${isDir ? '/' : ''}`
-        })
-      if (sub.length) result += `\n\n${candidate}/:\n${sub.join('\n')}`
-      break
+    try {
+      if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
+        const sub = fs
+          .readdirSync(dir)
+          .filter(e => !e.startsWith('.') && !IGNORED.has(e))
+          .sort()
+          .slice(0, 20)
+          .map(e => {
+            try {
+              const isDir = fs.statSync(path.join(dir, e)).isDirectory()
+              return `  ${e}${isDir ? '/' : ''}`
+            } catch {
+              return `  ${e}`
+            }
+          })
+        if (sub.length) result += `\n\n${candidate}/:\n${sub.join('\n')}`
+        break
+      }
+    } catch {
+      // broken symlink or inaccessible directory — skip
     }
   }
 
