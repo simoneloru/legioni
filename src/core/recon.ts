@@ -35,6 +35,9 @@ function buildProjectProfile(cwd: string): string {
     sections.push(`## Existing Instructions\n\n_\`${existingFile}\` is present in this repo and is loaded natively by the host — its contents are not duplicated here._`)
   }
 
+  const securitySection = buildSecuritySection(cwd, language)
+  if (securitySection) sections.push(securitySection)
+
   return sections.join('\n\n')
 }
 
@@ -165,6 +168,110 @@ function getTopLevelStructure(cwd: string): string {
 function findExistingInstructionsFile(cwd: string): string | null {
   for (const filename of ['AGENTS.md', 'CLAUDE.md', '.cursorrules']) {
     if (fs.existsSync(path.join(cwd, filename))) return filename
+  }
+  return null
+}
+
+function buildSecuritySection(cwd: string, language: string): string | null {
+  const findings: string[] = []
+
+  // Security-related files
+  const securityFiles = [
+    { name: '.env', risk: 'high' },
+    { name: '.env.example', risk: 'info' },
+    { name: '.env.local', risk: 'high' },
+    { name: 'security.md', risk: 'info' },
+    { name: 'SECURITY.md', risk: 'info' },
+    { name: '.gitguardian.yml', risk: 'info' },
+    { name: '.snyk', risk: 'info' },
+    { name: '.npmrc', risk: 'info' },
+  ]
+
+  // Check if .env is gitignored
+  const envPath = path.join(cwd, '.env')
+  const gitignorePath = path.join(cwd, '.gitignore')
+  let envGitignored = false
+  if (fs.existsSync(gitignorePath) && fs.existsSync(envPath)) {
+    const gitignore = fs.readFileSync(gitignorePath, 'utf-8')
+    envGitignored = gitignore.includes('.env')
+    if (!envGitignored) {
+      findings.push(`### ⚠️ .env not in .gitignore\n\n\`.env\` exists but is not listed in \`.gitignore\`. Secrets may be committed.`)
+    }
+  } else if (fs.existsSync(envPath)) {
+    findings.push(`### ⚠️ No .gitignore found\n\n\`.env\` exists but no \`.gitignore\` was found. Secrets may be committed.`)
+  }
+
+  const foundFiles = securityFiles
+    .filter(f => fs.existsSync(path.join(cwd, f.name)))
+    .map(f => {
+      if (f.name === '.env' && envGitignored) return `\`${f.name}\``
+      if (f.risk === 'high') return `\`${f.name}\` (⚠️ high — ensure it is gitignored)`
+      return `\`${f.name}\``
+    })
+
+  if (foundFiles.length) {
+    findings.push(`### Security files\n\n${foundFiles.join('\n')}`)
+  }
+
+  // Detect auth patterns in dependencies
+  const authDeps = detectAuthDependencies(cwd, language)
+  if (authDeps.length) {
+    findings.push(`### Auth-related dependencies\n\n${authDeps.join('\n')}`)
+  }
+
+  // Detect dependency audit availability
+  const auditCmd = detectAuditCommand(cwd, language)
+  if (auditCmd) {
+    findings.push(`### Dependency audit\n\nCommand available: \`${auditCmd}\`\n\nRun this periodically to check for known vulnerabilities.`)
+  }
+
+  if (!findings.length) return null
+  return `## Security Awareness\n\n${findings.join('\n\n')}`
+}
+
+function detectAuthDependencies(cwd: string, language: string): string[] {
+  const deps: string[] = []
+
+  if (language === 'TypeScript' || language === 'JavaScript') {
+    const pkgPath = path.join(cwd, 'package.json')
+    if (fs.existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
+        const allDeps = { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) }
+        const authPatterns = ['passport', 'jsonwebtoken', 'jose', 'bcrypt', 'argon2', 'next-auth', 'lucia', 'better-auth', 'clerk', 'auth0', 'supabase']
+        for (const pattern of authPatterns) {
+          if (pattern in allDeps) deps.push(`- \`${pattern}\` — authentication/authorization`)
+        }
+      } catch {
+        // malformed package.json
+      }
+    }
+  } else if (language === 'Python') {
+    const reqPath = path.join(cwd, 'requirements.txt')
+    if (fs.existsSync(reqPath)) {
+      const content = fs.readFileSync(reqPath, 'utf-8').toLowerCase()
+      const authPatterns = ['django-allauth', 'flask-login', 'fastapi-users', 'python-jose', 'passlib', 'argon2-cffi', 'pyjwt']
+      for (const pattern of authPatterns) {
+        if (content.includes(pattern)) deps.push(`- \`${pattern}\` — authentication/authorization`)
+      }
+    }
+  }
+
+  return deps
+}
+
+function detectAuditCommand(cwd: string, language: string): string | null {
+  if (language === 'TypeScript' || language === 'JavaScript') {
+    if (fs.existsSync(path.join(cwd, 'package-lock.json'))) return 'npm audit'
+    if (fs.existsSync(path.join(cwd, 'yarn.lock'))) return 'yarn audit'
+    if (fs.existsSync(path.join(cwd, 'pnpm-lock.yaml'))) return 'pnpm audit'
+  } else if (language === 'Python') {
+    if (fs.existsSync(path.join(cwd, 'requirements.txt'))) return 'pip-audit'
+    if (fs.existsSync(path.join(cwd, 'poetry.lock'))) return 'poetry audit'
+  } else if (language === 'Go') {
+    if (fs.existsSync(path.join(cwd, 'go.sum'))) return 'govulncheck ./...'
+  } else if (language === 'Rust') {
+    if (fs.existsSync(path.join(cwd, 'Cargo.lock'))) return 'cargo audit'
   }
   return null
 }
