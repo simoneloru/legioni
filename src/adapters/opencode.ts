@@ -16,7 +16,7 @@ function getOpencodeGlobalDir(): string {
 }
 
 const OPENCODE_GLOBAL_DIR = getOpencodeGlobalDir()
-const AGENTS_DIR = path.join(OPENCODE_GLOBAL_DIR, 'agent')
+const AGENTS_DIR = path.join(OPENCODE_GLOBAL_DIR, 'agents')
 
 export function writeAgents(roles: CompiledRole[]): string[] {
   fs.mkdirSync(AGENTS_DIR, { recursive: true })

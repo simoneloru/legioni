@@ -7,7 +7,9 @@ export const HOME_DIR = process.env.HOME ?? process.env.USERPROFILE ?? '/tmp'
 export const TEAM_STORE_DIR = path.join(HOME_DIR, '.legioni')
 
 export function teamStoreExists(): boolean {
-  return fs.existsSync(path.join(TEAM_STORE_DIR, 'roles'))
+  const rolesDir = path.join(TEAM_STORE_DIR, 'roles')
+  if (!fs.existsSync(rolesDir)) return false
+  return fs.readdirSync(rolesDir).some(f => f.endsWith('.md'))
 }
 
 export function loadRole(roleId: string): Role {
