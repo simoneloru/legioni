@@ -1,6 +1,6 @@
 {
   "name": "legioni",
-  "version": "0.4.5",
+  "version": "0.5.0",
   "description": "A portable, maturing team of AI coding agents. My name is Legion, for we are many.",
   "repository": {
     "type": "git",
@@ -32,7 +32,9 @@
   "files": [
     "dist/",
     "bin/",
-    "defaults/"
+    "defaults/",
+    "!dist/__tests__",
+    "!dist/**/*.test.*"
   ],
   "dependencies": {
     "chalk": "^5.3.0",
