@@ -4,7 +4,7 @@ import readline from 'readline'
 import chalk from 'chalk'
 import { TEAM_STORE_DIR } from './team'
 
-export type Tier = 'heavy' | 'light'
+export type Tier = 'heavy' | 'medium' | 'light'
 
 interface ProviderPreset {
   id: string
@@ -14,9 +14,9 @@ interface ProviderPreset {
 }
 
 const ROLE_TIER: Record<string, Tier> = {
-  orchestrator: 'heavy',
+  orchestrator: 'medium',
   architect: 'heavy',
-  reviewer: 'heavy',
+  reviewer: 'medium',
   implementer: 'light',
   'test-strategist': 'light',
   'db-expert': 'light',
@@ -27,43 +27,71 @@ export const PROVIDERS: ProviderPreset[] = [
     id: 'opencode-free',
     name: 'OpenCode Free',
     description: 'Free models (DeepSeek V4 Flash, North Mini) — no API key needed',
-    tiers: { heavy: 'opencode/deepseek-v4-flash-free', light: 'opencode/north-mini-code-free' },
+    tiers: {
+      heavy: 'opencode/deepseek-v4-flash-free',
+      medium: 'opencode/deepseek-v4-flash-free',
+      light: 'opencode/north-mini-code-free',
+    },
   },
   {
     id: 'opencode-zen',
     name: 'OpenCode Zen',
     description: 'Pay-as-you-go, tested and benchmarked models',
-    tiers: { heavy: 'opencode/claude-opus-4-8', light: 'opencode/claude-sonnet-4-6' },
+    tiers: {
+      heavy: 'opencode/claude-opus-4-8',
+      medium: 'opencode/claude-sonnet-4-6',
+      light: 'opencode/gpt-5.4-mini',
+    },
   },
   {
     id: 'opencode-go',
     name: 'OpenCode Go',
     description: '$10/mo subscription, reliable open models',
-    tiers: { heavy: 'opencode-go/glm-5.1', light: 'opencode-go/deepseek-v4-flash' },
+    tiers: {
+      heavy: 'opencode-go/glm-5.1',
+      medium: 'opencode-go/kimi-k2.7-code',
+      light: 'opencode-go/deepseek-v4-flash',
+    },
   },
   {
     id: 'github-copilot',
     name: 'GitHub Copilot',
     description: 'Uses your GitHub Copilot subscription',
-    tiers: { heavy: 'github-copilot/gpt-5.2', light: 'github-copilot/gpt-5.1-codex-mini' },
+    tiers: {
+      heavy: 'github-copilot/gpt-5.2',
+      medium: 'github-copilot/gpt-5.1-codex',
+      light: 'github-copilot/gpt-5.1-codex-mini',
+    },
   },
   {
     id: 'anthropic',
     name: 'Anthropic',
     description: 'Claude Opus / Sonnet (requires Anthropic API key)',
-    tiers: { heavy: 'anthropic/claude-opus-4-8', light: 'anthropic/claude-sonnet-4-6' },
+    tiers: {
+      heavy: 'anthropic/claude-opus-4-8',
+      medium: 'anthropic/claude-sonnet-4-6',
+      light: 'anthropic/claude-sonnet-4-5',
+    },
   },
   {
     id: 'openai',
     name: 'OpenAI',
     description: 'GPT-5.x / Codex (requires OpenAI API key or ChatGPT subscription)',
-    tiers: { heavy: 'openai/gpt-5.4', light: 'openai/gpt-5.4-mini' },
+    tiers: {
+      heavy: 'openai/gpt-5.4',
+      medium: 'openai/gpt-5.2',
+      light: 'openai/gpt-5.4-mini',
+    },
   },
   {
     id: 'google',
     name: 'Google',
     description: 'Gemini (requires Google API key or Vertex AI)',
-    tiers: { heavy: 'google/gemini-3.1-pro', light: 'google/gemini-3.5-flash' },
+    tiers: {
+      heavy: 'google/gemini-3.1-pro',
+      medium: 'google/gemini-3.5-flash',
+      light: 'google/gemini-3.1-flash-lite',
+    },
   },
 ]
 
