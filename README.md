@@ -1,6 +1,6 @@
 # legioni
 
-[![npm version](https://img.shields.io/npm/v/legioni)](https://www.npmjs.com/package/legioni)
+[![npm version](https://img.shields.io/npm/v/legioni?cacheSeconds=0&label=npm)](https://www.npmjs.com/package/legioni)
 
 A team of AI coding agents that coordinates your work and learns from every task.
 
@@ -125,17 +125,21 @@ Promote? [y/n/q] n
 | `legioni promote` | Review staged lesson candidates interactively. |
 | `legioni upgrade-team` | Diff defaults against your team store and upgrade changed roles. |
 | `legioni config set-provider` | Change model provider (interactive menu). |
-| `legioni config set-model <role> <model>` | Override the model for one role. |
+| `legioni config set-model <role> <model>` | Override the model for one role. Run `legioni install` after. |
 | `legioni config list` | Show current provider and model assignments. |
 
 ## How it works
 
+Legioni is a **compile-time** tool: it reads your config, resolves models, and writes the final agent files that opencode uses. OpenCode never reads `~/.legioni/config.json` directly — it only reads the compiled agent files in `~/.config/opencode/agents/`.
+
 1. `legioni init` copies role definitions into `~/.legioni/roles/`. The store is portable across machines.
-2. `legioni install` reads each role, appends promoted lessons, applies model overrides, writes agent files to `~/.config/opencode/agent/`.
-3. `legioni init` also detects your stack and writes `.legioni/project.md`, registered in `opencode.json`.
-4. During a session, agents write workspace artifacts (plan, review, test results) and stage lesson candidates.
-5. `legioni promote` lets you review and promote lessons. They get injected into agent prompts on next compile.
-6. `legioni upgrade-team` syncs your store with newer defaults from legioni releases.
+2. `legioni install` reads each role, appends promoted lessons, applies model overrides, writes agent files to `~/.config/opencode/agents/`. **Always run this after any config change**, otherwise subagents keep using stale models.
+3. `legioni config set-provider` changes the provider and runs `install` automatically. `legioni config set-model` does **not** — you must run `legioni install` yourself.
+4. If you edit `~/.legioni/config.json` by hand, **run `legioni install`** to apply the changes. Until you do, opencode sees the old models.
+5. `legioni init` also detects your stack and writes `.legioni/project.md`, registered in `opencode.json`.
+6. During a session, agents write workspace artifacts (plan, review, test results) and stage lesson candidates.
+7. `legioni promote` lets you review and promote lessons. They get injected into agent prompts on next compile.
+8. `legioni upgrade-team` syncs your store with newer defaults from legioni releases.
 
 ## License
 
