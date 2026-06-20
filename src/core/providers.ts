@@ -49,7 +49,7 @@ export const PROVIDERS: ProviderPreset[] = [
     description: '$10/mo subscription, reliable open models',
     tiers: {
       heavy: 'opencode-go/glm-5.1',
-      medium: 'opencode-go/kimi-k2.7-code',
+      medium: 'opencode-go/kimi-k2.7',
       light: 'opencode-go/deepseek-v4-flash',
     },
   },
