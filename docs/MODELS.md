@@ -21,7 +21,7 @@ When you run `legioni init` for the first time, legioni asks which provider you 
 | Anthropic | `anthropic` | `anthropic/claude-opus-4-8` | `anthropic/claude-sonnet-4-6` | `anthropic/claude-sonnet-4-5` | `$ANTHROPIC_API_KEY` |
 | OpenAI | `openai` | `openai/gpt-5.4` | `openai/gpt-5.2` | `openai/gpt-5.4-mini` | `$OPENAI_API_KEY` |
 | Google | `google` | `google/gemini-3.1-pro` | `google/gemini-3.5-flash` | `google/gemini-3.1-flash-lite` | `$GEMINI_API_KEY` |
-| DeepSeek | `deepseek` | `deepseek/deepseek-reasoner` | `deepseek/deepseek-chat` | `deepseek/deepseek-chat` | `$DEEPSEEK_API_KEY` |
+| DeepSeek | `deepseek` | `deepseek/deepseek-v4-pro` | `deepseek/deepseek-v4-flash` | `deepseek/deepseek-chat` | `$DEEPSEEK_API_KEY` |
 | Custom | — | — | — | — | Set manually |
 
 Provider selection is stored in `~/.legioni/config.json` along with the resolved model map:

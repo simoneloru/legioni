@@ -98,8 +98,8 @@ export const PROVIDERS: ProviderPreset[] = [
     name: 'DeepSeek',
     description: 'DeepSeek models — requires $DEEPSEEK_API_KEY (get at platform.deepseek.com)',
     tiers: {
-      heavy: 'deepseek/deepseek-reasoner',
-      medium: 'deepseek/deepseek-chat',
+      heavy: 'deepseek/deepseek-v4-pro',
+      medium: 'deepseek/deepseek-v4-flash',
       light: 'deepseek/deepseek-chat',
     },
   },
