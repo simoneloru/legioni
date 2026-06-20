@@ -26,7 +26,7 @@ export const PROVIDERS: ProviderPreset[] = [
   {
     id: 'opencode-free',
     name: 'OpenCode Free',
-    description: 'Free models (DeepSeek V4 Flash, North Mini) — no API key needed',
+    description: 'Free models — no API key required',
     tiers: {
       heavy: 'opencode/deepseek-v4-flash-free',
       medium: 'opencode/deepseek-v4-flash-free',
@@ -36,7 +36,7 @@ export const PROVIDERS: ProviderPreset[] = [
   {
     id: 'opencode-zen',
     name: 'OpenCode Zen',
-    description: 'Pay-as-you-go, tested and benchmarked models',
+    description: 'Pay-as-you-go — requires $OPENCODE_API_KEY',
     tiers: {
       heavy: 'opencode/claude-opus-4-8',
       medium: 'opencode/claude-sonnet-4-6',
@@ -46,7 +46,7 @@ export const PROVIDERS: ProviderPreset[] = [
   {
     id: 'opencode-go',
     name: 'OpenCode Go',
-    description: '$10/mo subscription, reliable open models',
+    description: '$10/mo subscription — requires $OPENCODE_API_KEY',
     tiers: {
       heavy: 'opencode-go/glm-5.1',
       medium: 'opencode-go/kimi-k2.7',
@@ -56,7 +56,7 @@ export const PROVIDERS: ProviderPreset[] = [
   {
     id: 'github-copilot',
     name: 'GitHub Copilot',
-    description: 'Uses your GitHub Copilot subscription',
+    description: 'GitHub Copilot subscription — run opencode auth login',
     tiers: {
       heavy: 'github-copilot/gpt-5.2',
       medium: 'github-copilot/gpt-5.1-codex',
@@ -66,7 +66,7 @@ export const PROVIDERS: ProviderPreset[] = [
   {
     id: 'anthropic',
     name: 'Anthropic',
-    description: 'Claude Opus / Sonnet (requires Anthropic API key)',
+    description: 'Claude models — requires $ANTHROPIC_API_KEY',
     tiers: {
       heavy: 'anthropic/claude-opus-4-8',
       medium: 'anthropic/claude-sonnet-4-6',
@@ -76,7 +76,7 @@ export const PROVIDERS: ProviderPreset[] = [
   {
     id: 'openai',
     name: 'OpenAI',
-    description: 'GPT-5.x / Codex (requires OpenAI API key or ChatGPT subscription)',
+    description: 'GPT models — requires $OPENAI_API_KEY',
     tiers: {
       heavy: 'openai/gpt-5.4',
       medium: 'openai/gpt-5.2',
@@ -86,11 +86,21 @@ export const PROVIDERS: ProviderPreset[] = [
   {
     id: 'google',
     name: 'Google',
-    description: 'Gemini (requires Google API key or Vertex AI)',
+    description: 'Gemini models — requires $GEMINI_API_KEY',
     tiers: {
       heavy: 'google/gemini-3.1-pro',
       medium: 'google/gemini-3.5-flash',
       light: 'google/gemini-3.1-flash-lite',
+    },
+  },
+  {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    description: 'DeepSeek models — requires $DEEPSEEK_API_KEY (get at platform.deepseek.com)',
+    tiers: {
+      heavy: 'deepseek/deepseek-reasoner',
+      medium: 'deepseek/deepseek-chat',
+      light: 'deepseek/deepseek-chat',
     },
   },
 ]
@@ -145,13 +155,13 @@ export async function selectProviderInteractive(): Promise<ProviderPreset> {
   })
 
   console.log()
-  console.log(`  ${chalk.cyan('8.')} ${chalk.bold('Custom')} — ${chalk.dim('edit ~/.legioni/config.json manually')}`)
+  console.log(`  ${chalk.cyan('9.')} ${chalk.bold('Custom')} — ${chalk.dim('edit ~/.legioni/config.json manually')}`)
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
   const ask = (q: string): Promise<string> =>
     new Promise(resolve => rl.question(q, resolve))
 
-  const answer = (await ask(chalk.blue('Select [1-8]: '))).trim()
+  const answer = (await ask(chalk.blue('Select [1-9]: '))).trim()
   rl.close()
 
   const idx = parseInt(answer, 10)
@@ -190,7 +200,7 @@ export function listConfig(): void {
   console.log(chalk.bold('Role models:'))
   for (const [role, tier] of Object.entries(ROLE_TIER)) {
     const model = models[role] ?? '(not set)'
-    const tierLabel = tier === 'heavy' ? chalk.red('heavy') : chalk.green('light')
+    const tierLabel = tier === 'heavy' ? chalk.red('heavy') : tier === 'medium' ? chalk.yellow('medium') : chalk.green('light')
     console.log(`  ${chalk.cyan(role.padEnd(16))} ${model}  ${tierLabel}`)
   }
 
