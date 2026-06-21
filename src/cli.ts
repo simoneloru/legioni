@@ -6,6 +6,16 @@ import { runPromote } from './commands/promote'
 import { runUpgradeTeam } from './commands/upgrade-team'
 import { runConfigSetModel, runConfigSetProvider, runConfigList } from './commands/config'
 
+function safeCwd(): string {
+  try {
+    return process.cwd()
+  } catch {
+    const home = process.env.HOME ?? process.env.USERPROFILE ?? '/tmp'
+    process.chdir(home)
+    return home
+  }
+}
+
 const program = new Command()
 
 program
@@ -17,22 +27,22 @@ program
 program
   .command('init')
   .description('Scaffold team (if missing), run project recon, install to opencode')
-  .action(() => runInit(process.cwd()))
+  .action(() => runInit(safeCwd()))
 
 program
   .command('install')
   .description('Compile team (roles + lessons) and write to opencode global agents dir')
-  .action(() => runInstall(process.cwd()))
+  .action(() => runInstall(safeCwd()))
 
 program
   .command('update')
   .description('Refresh project recon and reinstall team (team definition unchanged)')
-  .action(() => runUpdate(process.cwd()))
+  .action(() => runUpdate(safeCwd()))
 
 program
   .command('promote')
   .description('Review staged lessons and promote approved ones to the team store')
-  .action(async () => runPromote(process.cwd()))
+  .action(async () => runPromote(safeCwd()))
 
 program
   .command('upgrade-team')
