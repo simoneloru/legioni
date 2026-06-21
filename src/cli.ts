@@ -43,10 +43,10 @@ program
   .command('promote')
   .description('Review staged lessons and promote approved ones to the team store')
   .option('--yes', 'Approve all staged lessons without prompting')
-  .option('--no', 'Reject all staged lessons without prompting')
+  .option('--reject', 'Reject all staged lessons without prompting')
   .option('--slug <slug>', 'Filter lessons by slug')
   .option('--role <role>', 'Filter lessons by role')
-  .action(async (opts: { yes?: boolean; no?: boolean; slug?: string; role?: string }) => runPromote(safeCwd(), opts))
+  .action(async (opts: { yes?: boolean; reject?: boolean; slug?: string; role?: string }) => runPromote(safeCwd(), { yes: opts.yes, no: opts.reject, slug: opts.slug, role: opts.role }))
 
 program
   .command('upgrade-team')
