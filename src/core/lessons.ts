@@ -35,6 +35,64 @@ export function readStagedLessons(cwd: string): StagedLesson[] {
   return staged
 }
 
+export interface PromoteOptions {
+  yes?: boolean
+  no?: boolean
+  slug?: string
+  role?: string
+}
+
+export async function promoteNonInteractive(cwd: string, opts: PromoteOptions): Promise<void> {
+  const wsDir = path.join(cwd, WORKSPACE_DIR)
+  let staged = readStagedLessons(cwd)
+  if (staged.length === 0) {
+    console.log('No staged lessons found in .legioni/lessons.staging.*.md')
+    return
+  }
+
+  if (opts.slug) {
+    staged = staged.filter(l => l.slug === opts.slug)
+  }
+  if (opts.role) {
+    staged = staged.filter(l => l.role === opts.role)
+  }
+  if (staged.length === 0) {
+    console.log('No matching staged lessons found.')
+    return
+  }
+
+  const action = opts.yes ? 'Promoting' : 'Rejecting'
+  console.log(`${action} ${staged.length} lesson(s)...`)
+
+  let promoted = 0
+  let rejected = 0
+  const reviewed = new Map<string, Set<string>>()
+
+  for (const lesson of staged) {
+    const filePath = path.join(wsDir, `lessons.staging.${lesson.role}.md`)
+    if (!reviewed.has(filePath)) reviewed.set(filePath, new Set())
+    reviewed.get(filePath)!.add(lesson.slug)
+
+    if (opts.yes) {
+      writeLessonToStore(lesson)
+      promoted++
+      console.log(`  ✓ ${lesson.role}/${lesson.slug}`)
+    } else {
+      rejected++
+      console.log(`  ✗ ${lesson.role}/${lesson.slug}`)
+    }
+  }
+
+  for (const [filePath, decidedSlugs] of reviewed) {
+    removeSlugsFromStagingFile(filePath, decidedSlugs)
+  }
+
+  console.log(`\nDone. ${promoted} promoted, ${rejected} rejected.`)
+  if (promoted > 0) {
+    console.log('Run `legioni install` to recompile the team with the new lessons.')
+  }
+}
+
 export async function promoteInteractive(cwd: string): Promise<void> {
   const wsDir = path.join(cwd, WORKSPACE_DIR)
   const staged = readStagedLessons(cwd)

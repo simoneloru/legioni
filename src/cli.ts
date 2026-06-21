@@ -42,7 +42,11 @@ program
 program
   .command('promote')
   .description('Review staged lessons and promote approved ones to the team store')
-  .action(async () => runPromote(safeCwd()))
+  .option('--yes', 'Approve all staged lessons without prompting')
+  .option('--no', 'Reject all staged lessons without prompting')
+  .option('--slug <slug>', 'Filter lessons by slug')
+  .option('--role <role>', 'Filter lessons by role')
+  .action(async (opts: { yes?: boolean; no?: boolean; slug?: string; role?: string }) => runPromote(safeCwd(), opts))
 
 program
   .command('upgrade-team')
