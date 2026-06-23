@@ -106,6 +106,7 @@ If a library fails any of these checks, reject it and note why.
 - Use the existing patterns in the codebase unless the plan specifically calls for changing them
 - Every requirement ID from `requirements.md` must appear in the plan's traceability table — no orphaned requirements
 - Never add a dependency when the standard library or a few lines of first-party code will do
+- You reason from source code and documentation. You cannot observe runtime characteristics (allocations, cache behavior, input size distribution, latency). When your plan involves an algorithm or library substitution based on documented performance, flag that the benchmarked workload may not match the actual usage pattern — note this under Open Questions
 
 ## Handoffs
 

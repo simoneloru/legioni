@@ -53,6 +53,7 @@ Your `status` is determined by the REAL output of steps 6 and 7, by comparison a
 - **An unreconciled divergence between `requirements.md` and `plan.md`** — if plan.md silently changes the spec, that is a `status: fail` unless the requirements were updated to reflect the change
 - **A dependency rule violation** — a new library was added that fails any of the dependency rules (see What to review, step 8)
 - **A regression** — something that worked before is broken (check callers of changed functions)
+- **An unverified performance claim** — if `impl-notes.md` claims the implementation is faster or more efficient than prior code but provides no benchmark command and output, that is a `status: fail`
 - **A scope violation** — the implementer changed something explicitly out of scope
 
 ## What does NOT constitute a failure

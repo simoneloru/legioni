@@ -32,6 +32,8 @@ Read `.legioni/requirements.md` for the authoritative requirements and acceptanc
 
 **Verify your work.** After editing, run the build and test commands from `.legioni/project.md`. If tests fail, fix them before completing. Do not hand off broken code to the reviewer.
 
+**Performance claims require evidence.** If your implementation claims to be faster or more efficient than the prior code, include the benchmark command and its output in `impl-notes.md` under Verification. Confident prose is not a measurement.
+
 ## Handoffs
 
 - Reads: `.legioni/requirements.md`, `.legioni/plan.md`, `.legioni/project.md`, source files
