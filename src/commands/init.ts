@@ -5,10 +5,11 @@ import { loadAllRoles, FileLessonsStore, teamStoreExists } from '../core/team'
 import { compileAllRoles } from '../core/compile'
 import { runRecon, WORKSPACE_DIR } from '../core/recon'
 import { scaffoldDefaultTeam } from '../core/scaffold'
-import { writeAgents, upsertProjectInstructions } from '../adapters/opencode'
+import { getHostAdapters } from '../adapters'
 import { selectProviderInteractive } from '../core/providers'
+import { Host } from '../types'
 
-export async function runInit(cwd: string): Promise<void> {
+export async function runInit(cwd: string, host: Host | 'both' = 'both'): Promise<void> {
   // 1. Scaffold ~/.legioni/ from defaults if this is the first run
   if (!teamStoreExists()) {
     const provider = await selectProviderInteractive()
@@ -32,27 +33,36 @@ export async function runInit(cwd: string): Promise<void> {
     console.log(chalk.dim('  → .legioni/ added to .git/info/exclude'))
   }
 
-  // 4. Compile roles (playbook + lessons) and write to opencode global agents dir
-  process.stdout.write(chalk.blue('Compiling team → opencode agents ... '))
+  // 4. Compile roles (playbook + lessons) and write to host agents dirs
   const roles = loadAllRoles()
   const store = new FileLessonsStore()
   const compiled = compileAllRoles(roles, store)
-  const written = writeAgents(compiled)
-  console.log(chalk.green('done'))
-  written.forEach(p => console.log(chalk.dim(`  → ${p}`)))
+  const hostAdapters = getHostAdapters(host)
+  for (const adapter of hostAdapters) {
+    const written = adapter.writeAgents(compiled)
+    written.forEach(p => console.log(chalk.dim(`  → ${p}`)))
+  }
 
-  // 5. Add .legioni/project.md to project-scoped opencode.json
-  const { configPath, added, tracked } = upsertProjectInstructions(cwd)
-  if (added) {
-    console.log(chalk.dim(`  → Added .legioni/project.md to instructions in ${configPath}`))
-    if (tracked) {
-      console.log(chalk.yellow(`  ⚠  opencode.json is git-tracked in this repo — this edit will`))
-      console.log(chalk.yellow(`     appear in git status. Stash or revert it when done.`))
+  // 5. Add project instructions for each host
+  for (const adapter of hostAdapters) {
+    const { configPath, added, tracked } = adapter.upsertProjectInstructions(cwd)
+    if (added) {
+      console.log(chalk.dim(`  → Added project instructions to ${configPath}`))
+      if (tracked) {
+        console.log(chalk.yellow(`  ⚠  ${path.basename(configPath)} is git-tracked in this repo — this edit will`))
+        console.log(chalk.yellow(`     appear in git status. Stash or revert it when done.`))
+      } else {
+        const excludePath = path.join(cwd, '.git', 'info', 'exclude')
+        if (fs.existsSync(path.dirname(excludePath))) {
+          const existing = fs.existsSync(excludePath) ? fs.readFileSync(excludePath, 'utf-8') : ''
+          if (!existing.split('\n').some(l => l.trim() === path.basename(configPath))) {
+            console.log(chalk.dim(`  → ${path.basename(configPath)} added to .git/info/exclude`))
+          }
+        }
+      }
     } else {
-      console.log(chalk.dim(`  → opencode.json added to .git/info/exclude`))
+      console.log(chalk.dim(`  → Project instructions already in ${configPath}`))
     }
-  } else {
-    console.log(chalk.dim(`  → .legioni/project.md already in ${configPath}`))
   }
 
   console.log()

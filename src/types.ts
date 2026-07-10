@@ -35,3 +35,10 @@ export interface CompiledRole {
 export interface LessonsStore {
   getLessonsForRole(roleId: string): Lesson[]
 }
+
+export type Host = 'opencode' | 'zoocode'
+
+export interface HostAdapter {
+  writeAgents(roles: CompiledRole[]): string[]
+  upsertProjectInstructions(cwd: string): { configPath: string; added: boolean; tracked: boolean }
+}

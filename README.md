@@ -4,7 +4,7 @@
 
 A team of AI coding agents that coordinates your work and learns from every task.
 
-Requires [opencode](https://github.com/anomalyco/opencode).
+Works with [opencode](https://github.com/anomalyco/opencode) and [Zoo Code](https://github.com/Zoo-Code-Org/Zoo-Code).
 
 ## How you use it
 
@@ -21,7 +21,7 @@ cd your-project
 npx legioni init
 ```
 
-Then start opencode and type your task:
+Then start opencode (or Zoo Code) and type your task:
 
 ```
 opencode
@@ -62,14 +62,22 @@ Next task, those lessons are active. The team gets better each time.
 $ legioni init
 Running project recon ... done
   → .legioni/project.md
-Compiling team → opencode agents ... done
-  → ~/.config/opencode/agent/architect.md
-  → ~/.config/opencode/agent/implementer.md
-  → ~/.config/opencode/agent/orchestrator.md
-  → ~/.config/opencode/agent/reviewer.md
-  → ~/.config/opencode/agent/test-strategist.md
-  → ~/.config/opencode/agent/db-expert.md
+Compiling team → agents ... done
+  → ~/.config/opencode/agents/architect.md
+  → ~/.config/opencode/agents/implementer.md
+  → ~/.config/opencode/agents/orchestrator.md
+  → ~/.config/opencode/agents/reviewer.md
+  → ~/.config/opencode/agents/test-strategist.md
+  → ~/.config/opencode/agents/db-expert.md
+  → ~/.config/Code/User/settings/custom_modes.yaml
 legioni init complete.
+```
+
+By default, legioni writes agents for both hosts. Use `--host` to target one:
+
+```bash
+legioni install --host opencode   # only OpenCode
+legioni install --host zoocode    # only Zoo Code
 ```
 
 On a real project, recon detects your stack:
@@ -119,9 +127,9 @@ Promote? [y/n/q] n
 
 | Command | What it does |
 |---|---|
-| `legioni init` | Setup. Scaffolds team store, picks provider, detects stack, compiles agents. |
-| `legioni install` | Recompile agents after promoting lessons or changing config. |
-| `legioni update` | Re-detect stack and recompile. Use when the project changed. |
+| `legioni init [--host opencode\|zoocode\|both]` | Setup. Scaffolds team store, picks provider, detects stack, compiles agents. Default: both. |
+| `legioni install [--host opencode\|zoocode\|both]` | Recompile agents after promoting lessons or changing config. Default: both. |
+| `legioni update [--host opencode\|zoocode\|both]` | Re-detect stack and recompile. Use when the project changed. Default: both. |
 | `legioni promote` | Review staged lesson candidates interactively. |
 | `legioni upgrade-team` | Diff defaults against your team store and upgrade changed roles. |
 | `legioni config set-provider` | Change model provider (interactive menu). |
@@ -130,13 +138,16 @@ Promote? [y/n/q] n
 
 ## How it works
 
-Legioni is a **compile-time** tool: it reads your config, resolves models, and writes the final agent files that opencode uses. OpenCode never reads `~/.legioni/config.json` directly — it only reads the compiled agent files in `~/.config/opencode/agents/`.
+Legioni is a **compile-time** tool: it reads your config, resolves models, and writes the final agent files that your AI host uses. The host never reads `~/.legioni/config.json` directly — it only reads the compiled agent files written to its agent directory.
 
 1. `legioni init` copies role definitions into `~/.legioni/roles/`. The store is portable across machines.
-2. `legioni install` reads each role, appends promoted lessons, applies model overrides, writes agent files to `~/.config/opencode/agents/`. **Always run this after any config change**, otherwise subagents keep using stale models.
+2. `legioni install` reads each role, appends promoted lessons, applies model overrides, and writes agent files for both hosts by default:
+   - **OpenCode**: agents written to `~/.config/opencode/agents/*.md` with YAML frontmatter (model, mode, permissions)
+   - **Zoo Code**: agents written to `~/.config/Code/User/settings/custom_modes.yaml` as custom modes with tool group mapping
+   Use `--host` to target a single host. **Always run `legioni install` after any config change**.
 3. `legioni config set-provider` changes the provider and runs `install` automatically. `legioni config set-model` does **not** — you must run `legioni install` yourself.
-4. If you edit `~/.legioni/config.json` by hand, **run `legioni install`** to apply the changes. Until you do, opencode sees the old models.
-5. `legioni init` also detects your stack and writes `.legioni/project.md`, registered in `opencode.json`.
+4. If you edit `~/.legioni/config.json` by hand, **run `legioni install`** to apply the changes.
+5. `legioni init` also detects your stack and writes `.legioni/project.md`, registered in `opencode.json` (OpenCode) and `.roo/rules/legioni.md` (Zoo Code).
 6. During a session, agents write workspace artifacts (plan, review, test results) and stage lesson candidates.
 7. `legioni promote` lets you review and promote lessons. They get injected into agent prompts on next compile.
 8. `legioni upgrade-team` syncs your store with newer defaults from legioni releases.

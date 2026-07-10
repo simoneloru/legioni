@@ -27,17 +27,20 @@ program
 program
   .command('init')
   .description('Scaffold team (if missing), run project recon, install to opencode')
-  .action(() => runInit(safeCwd()))
+  .option('--host <host>', 'Target host: opencode, zoocode, or both (default: both)', 'both')
+  .action((opts: { host: string }) => runInit(safeCwd(), opts.host as 'opencode' | 'zoocode' | 'both'))
 
 program
   .command('install')
-  .description('Compile team (roles + lessons) and write to opencode global agents dir')
-  .action(() => runInstall(safeCwd()))
+  .description('Compile team (roles + lessons) and write to host agents dir')
+  .option('--host <host>', 'Target host: opencode, zoocode, or both (default: both)', 'both')
+  .action((opts: { host: string }) => runInstall(safeCwd(), opts.host as 'opencode' | 'zoocode' | 'both'))
 
 program
   .command('update')
   .description('Refresh project recon and reinstall team (team definition unchanged)')
-  .action(() => runUpdate(safeCwd()))
+  .option('--host <host>', 'Target host: opencode, zoocode, or both (default: both)', 'both')
+  .action((opts: { host: string }) => runUpdate(safeCwd(), opts.host as 'opencode' | 'zoocode' | 'both'))
 
 program
   .command('promote')
