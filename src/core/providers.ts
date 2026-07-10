@@ -146,7 +146,7 @@ export function getCurrentProvider(): ProviderPreset | null {
 
 export async function selectProviderInteractive(): Promise<ProviderPreset> {
   console.log()
-  console.log(chalk.bold('Which model provider do you use with opencode?'))
+  console.log(chalk.bold('Which model provider do you use?'))
   console.log(chalk.dim('This sets the default models for all legioni team roles.'))
   console.log()
 

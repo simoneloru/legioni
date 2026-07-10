@@ -1,6 +1,6 @@
 {
   "name": "legioni",
-  "version": "0.5.9",
+  "version": "0.6.0",
   "description": "A portable, maturing team of AI coding agents. My name is Legion, for we are many.",
   "repository": {
     "type": "git",
@@ -11,6 +11,7 @@
     "ai",
     "coding-agent",
     "opencode",
+    "zoocode",
     "multi-agent",
     "llm",
     "cli",
