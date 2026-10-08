@@ -73,11 +73,13 @@ Compiling team → agents ... done
 legioni init complete.
 ```
 
-By default, legioni writes agents for both hosts. Use `--host` to target one:
+By default, legioni writes agents for both classic hosts. Use `--host` to target one or everything:
 
 ```bash
-legioni install --host opencode   # only OpenCode
-legioni install --host zoocode    # only Zoo Code
+legioni install --host opencode       # only OpenCode
+legioni install --host zoocode        # only Zoo Code
+legioni install --host docker-agent   # only Docker Agent (.legioni/docker-agent.yaml)
+legioni install --host all            # all three hosts
 ```
 
 On a real project, recon detects your stack:
@@ -127,9 +129,10 @@ Promote? [y/n/q] n
 
 | Command | What it does |
 |---|---|
-| `legioni init [--host opencode\|zoocode\|both]` | Setup. Scaffolds team store, picks provider, detects stack, compiles agents. Default: both. |
-| `legioni install [--host opencode\|zoocode\|both]` | Recompile agents after promoting lessons or changing config. Default: both. |
-| `legioni update [--host opencode\|zoocode\|both]` | Re-detect stack and recompile. Use when the project changed. Default: both. |
+| `legioni init [--host opencode\|zoocode\|docker-agent\|both\|all]` | Setup. Scaffolds team store, picks provider, detects stack, compiles agents. `both` = opencode + zoocode (default, legacy). `all` adds docker-agent. |
+| `legioni install [--host opencode\|zoocode\|docker-agent\|both\|all]` | Recompile agents after promoting lessons or changing config. Default: both. |
+| `legioni update [--host opencode\|zoocode\|docker-agent\|both\|all]` | Re-detect stack and recompile. Use when the project changed. Default: both. |
+| `legioni doctor` | Check team store, project files, and required binaries (docker, docker agent plugin, opencode). |
 | `legioni promote` | Review staged lesson candidates interactively. |
 | `legioni upgrade-team` | Diff defaults against your team store and upgrade changed roles. |
 | `legioni config set-provider` | Change model provider (interactive menu). |
@@ -141,13 +144,14 @@ Promote? [y/n/q] n
 Legioni is a **compile-time** tool: it reads your config, resolves models, and writes the final agent files that your AI host uses. The host never reads `~/.legioni/config.json` directly — it only reads the compiled agent files written to its agent directory.
 
 1. `legioni init` copies role definitions into `~/.legioni/roles/`. The store is portable across machines.
-2. `legioni install` reads each role, appends promoted lessons, applies model overrides, and writes agent files for both hosts by default:
+2. `legioni install` reads each role, appends promoted lessons, applies model overrides, and writes agent files for the selected hosts (default: both):
    - **OpenCode**: agents written to `~/.config/opencode/agents/*.md` with YAML frontmatter (model, mode, permissions)
    - **Zoo Code**: agents written to `~/.config/Code/User/settings/custom_modes.yaml` as custom modes with tool group mapping
+   - **Docker Agent**: team written to `<project>/.legioni/docker-agent.yaml` (orchestrator with `sub_agents` + `background_agents` for parallel dispatch). Run it with `docker agent run .legioni/docker-agent.yaml`. See `docs/DOCKER_AGENT.md`.
    Use `--host` to target a single host. **Always run `legioni install` after any config change**.
 3. `legioni config set-provider` changes the provider and runs `install` automatically. `legioni config set-model` does **not** — you must run `legioni install` yourself.
 4. If you edit `~/.legioni/config.json` by hand, **run `legioni install`** to apply the changes.
-5. `legioni init` also detects your stack and writes `.legioni/project.md`, registered in `opencode.json` (OpenCode) and `.roo/rules/legioni.md` (Zoo Code).
+5. `legioni init` also detects your stack and writes `.legioni/project.md`, registered in `opencode.json` (OpenCode) and `.roo/rules/legioni.md` (Zoo Code). The docker-agent team file (`.legioni/docker-agent.yaml`) lives in the same git-excluded workspace, so no extra registration is needed.
 6. During a session, agents write workspace artifacts (plan, review, test results) and stage lesson candidates.
 7. `legioni promote` lets you review and promote lessons. They get injected into agent prompts on next compile.
 8. `legioni upgrade-team` syncs your store with newer defaults from legioni releases.
