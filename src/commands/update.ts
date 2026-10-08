@@ -4,9 +4,9 @@ import { runRecon, WORKSPACE_DIR } from '../core/recon'
 import { loadAllRoles, FileLessonsStore } from '../core/team'
 import { compileAllRoles } from '../core/compile'
 import { getHostAdapters } from '../adapters'
-import { Host } from '../types'
+import { HostOption } from '../types'
 
-export function runUpdate(cwd: string, host: Host | 'both' = 'both'): void {
+export function runUpdate(cwd: string, host: HostOption = 'both'): void {
   process.stdout.write(chalk.blue('Refreshing project recon ... '))
   runRecon(cwd)
   console.log(chalk.green('done'))
@@ -19,7 +19,7 @@ export function runUpdate(cwd: string, host: Host | 'both' = 'both'): void {
   const hostAdapters = getHostAdapters(host)
   for (const adapter of hostAdapters) {
     process.stdout.write(chalk.blue('Recompiling team ... '))
-    adapter.writeAgents(compiled)
+    adapter.writeAgents(compiled, cwd)
     console.log(chalk.green('done'))
   }
 

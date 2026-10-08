@@ -4,7 +4,16 @@ import { runInstall } from './commands/install'
 import { runUpdate } from './commands/update'
 import { runPromote } from './commands/promote'
 import { runUpgradeTeam } from './commands/upgrade-team'
+import { runDoctor } from './commands/doctor'
 import { runConfigSetModel, runConfigSetProvider, runConfigList } from './commands/config'
+import { HostOption } from './types'
+
+function parseHost(value: string): HostOption {
+  if (value === 'opencode' || value === 'zoocode' || value === 'docker-agent' || value === 'both' || value === 'all') {
+    return value
+  }
+  throw new Error(`Invalid host "${value}". Use opencode, zoocode, docker-agent, both, or all.`)
+}
 
 function safeCwd(): string {
   try {
@@ -26,21 +35,21 @@ program
 
 program
   .command('init')
-  .description('Scaffold team (if missing), run project recon, install to opencode')
-  .option('--host <host>', 'Target host: opencode, zoocode, or both (default: both)', 'both')
-  .action((opts: { host: string }) => runInit(safeCwd(), opts.host as 'opencode' | 'zoocode' | 'both'))
+  .description('Scaffold team (if missing), run project recon, install to host(s)')
+  .option('--host <host>', 'Target host: opencode, zoocode, docker-agent, both, or all (default: both)', 'both')
+  .action((opts: { host: string }) => runInit(safeCwd(), parseHost(opts.host)))
 
 program
   .command('install')
   .description('Compile team (roles + lessons) and write to host agents dir')
-  .option('--host <host>', 'Target host: opencode, zoocode, or both (default: both)', 'both')
-  .action((opts: { host: string }) => runInstall(safeCwd(), opts.host as 'opencode' | 'zoocode' | 'both'))
+  .option('--host <host>', 'Target host: opencode, zoocode, docker-agent, both, or all (default: both)', 'both')
+  .action((opts: { host: string }) => runInstall(safeCwd(), parseHost(opts.host)))
 
 program
   .command('update')
   .description('Refresh project recon and reinstall team (team definition unchanged)')
-  .option('--host <host>', 'Target host: opencode, zoocode, or both (default: both)', 'both')
-  .action((opts: { host: string }) => runUpdate(safeCwd(), opts.host as 'opencode' | 'zoocode' | 'both'))
+  .option('--host <host>', 'Target host: opencode, zoocode, docker-agent, both, or all (default: both)', 'both')
+  .action((opts: { host: string }) => runUpdate(safeCwd(), parseHost(opts.host)))
 
 program
   .command('promote')
@@ -55,6 +64,11 @@ program
   .command('upgrade-team')
   .description('Compare defaults with your team store and upgrade changed roles')
   .action(() => runUpgradeTeam())
+
+program
+  .command('doctor')
+  .description('Check team store, project files, and required binaries')
+  .action(() => runDoctor(safeCwd()))
 
 const configCmd = program
   .command('config')
