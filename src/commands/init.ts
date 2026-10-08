@@ -7,9 +7,9 @@ import { runRecon, WORKSPACE_DIR } from '../core/recon'
 import { scaffoldDefaultTeam } from '../core/scaffold'
 import { getHostAdapters } from '../adapters'
 import { selectProviderInteractive } from '../core/providers'
-import { Host } from '../types'
+import { HostOption } from '../types'
 
-export async function runInit(cwd: string, host: Host | 'both' = 'both'): Promise<void> {
+export async function runInit(cwd: string, host: HostOption = 'both'): Promise<void> {
   // 1. Scaffold ~/.legioni/ from defaults if this is the first run
   if (!teamStoreExists()) {
     const provider = await selectProviderInteractive()
@@ -39,7 +39,7 @@ export async function runInit(cwd: string, host: Host | 'both' = 'both'): Promis
   const compiled = compileAllRoles(roles, store)
   const hostAdapters = getHostAdapters(host)
   for (const adapter of hostAdapters) {
-    const written = adapter.writeAgents(compiled)
+    const written = adapter.writeAgents(compiled, cwd)
     written.forEach(p => console.log(chalk.dim(`  → ${p}`)))
   }
 

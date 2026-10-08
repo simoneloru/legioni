@@ -2,9 +2,9 @@ import chalk from 'chalk'
 import { loadAllRoles, FileLessonsStore } from '../core/team'
 import { compileAllRoles } from '../core/compile'
 import { getHostAdapters } from '../adapters'
-import { Host } from '../types'
+import { HostOption } from '../types'
 
-export function runInstall(cwd: string, host: Host | 'both' = 'both'): void {
+export function runInstall(cwd: string, host: HostOption = 'both'): void {
   const roles = loadAllRoles()
   const store = new FileLessonsStore()
   const compiled = compileAllRoles(roles, store)
@@ -12,7 +12,7 @@ export function runInstall(cwd: string, host: Host | 'both' = 'both'): void {
   const hostAdapters = getHostAdapters(host)
   for (const adapter of hostAdapters) {
     process.stdout.write(chalk.blue(`Compiling team → agents ... `))
-    const written = adapter.writeAgents(compiled)
+    const written = adapter.writeAgents(compiled, cwd)
     console.log(chalk.green('done'))
     written.forEach(p => console.log(chalk.dim(`  → ${p}`)))
   }
